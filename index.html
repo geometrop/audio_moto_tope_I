@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+  <body style="background-color:rgb(106, 198, 229);">
+
+<head>
+  <script src="https://www.youtube.com/iframe_api"></script>
+  <style>
+      selector {
+        color: value;
+      }
+    </style>
+</head>
+<body>
+  <div id="playerContainer"></div>
+  <button onclick="playRandomVideo()">PIXETROPE: "audio moto proto tope" (click to commence, advance)</button>
+  <button onclick="getCurrentVideoUrl()">Get Current Video URL</button>
+  <button onclick="returnToPreviousVideo()">Return to Previous Video</button> <!-- New button -->
+  <p> </p>
+  <p style="color: rgb(10, 10, 10)">"Play" commences "audio-tonomous" playback, shuffling through video playback at independently-selected start, stop points <br><br>Video selections may be advanced with repeat clicks<br><br>Press "Current url" for printout of url, to be copied and pasted in new browser window<br><br>Press "play previous video" to see previously-displayed video <br><br>Project can be muted by clicking "mute" on video player<br><br>To stop project, close browser window</p>
+  <p> <br></p>
+  
+  <script>
+    // Utility function to get a random integer within a range
+    function getRandomInt(min, max) {
+      min = Math.ceil(min);
+      max = Math.floor(max);
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    var currentPlayer; // Variable to store the currently displayed player
+    var currentVideoId; // Variable to store the ID of the current video
+    var previousVideoId; // Variable to store the ID of the previous video
+
+    // An array of video objects with video IDs and start times
+    var videos = [
+      { id: 'o7Zqh4NR3UM', start: getRandomInt(0, 120) },
+      { id: 'IQAn2Z80gn0', start: getRandomInt(0, 120) },
+      { id: 'ITjHMWibaPo', start: getRandomInt(0, 120) },
+      { id: 'vvqFAyJj53M', start: getRandomInt(0, 120) },
+      { id: 'O5a1QNUZ8nc', start: getRandomInt(0, 120) },
+      { id: 'hWXp1SF38sU', start: getRandomInt(0, 120) },
+      { id: 'Ugs6iEWQ-R4', start: getRandomInt(0, 120) },
+      { id: 'MMIMG-QArww', start: getRandomInt(0, 120) },
+      { id: 'l2SjhV7lt_0', start: getRandomInt(0, 120) },
+      { id: '2gaGDLdsuto', start: getRandomInt(0, 120) },
+      { id: 'QZxfq3h6n18', start: getRandomInt(0, 120) },
+      { id: 'sjSiLKVE3SA', start: getRandomInt(0, 120) },
+      { id: 'uQKakjRTsA4', start: getRandomInt(0, 120) },
+      { id: '5wpDj1FP1n4', start: getRandomInt(0, 120) },
+      { id: 'vOmLbfrDmLk', start: getRandomInt(0, 120) },
+      { id: '0zkcHNqYK74', start: getRandomInt(0, 120) },
+      { id: 'WO46e-zmp8Y', start: getRandomInt(0, 120) },
+      { id: 'Oxyqr7lS9N8', start: getRandomInt(0, 120) },
+      { id: 'lXovr2ViZbA', start: getRandomInt(0, 120) },
+      { id: 'N2DVwUlhXpc', start: getRandomInt(0, 120) },
+      { id: 'qLwVMpq1euo', start: getRandomInt(0, 120) },
+      { id: 'lh0M67j2oA0', start: getRandomInt(0, 120) },
+      { id: 'JZ9yhEdqFS8', start: getRandomInt(0, 120) },
+      { id: 'vseKLe1dnuo', start: getRandomInt(0, 120) },
+      { id: 'ZbfuXJ2qW9E', start: getRandomInt(0, 120) },
+      { id: 'GRwu9TnVWaY', start: getRandomInt(0, 120) },
+      { id: 'b_ILGBqMto8', start: getRandomInt(0, 120) },
+      { id: 'bnWGlbW_d84', start: getRandomInt(0, 120) },
+      { id: 'zMsFJjJcXoE', start: getRandomInt(0, 120) },
+      { id: 'O43eIeOoiNY', start: getRandomInt(0, 120) },
+      { id: 'ZajOabcpGPc', start: getRandomInt(0, 120) },
+      { id: '8zGRsyszJ_c', start: getRandomInt(0, 120) },
+      { id: '8C8EFWnHj90', start: getRandomInt(0, 120) },
+      { id: 'ZH83RQhwbxg', start: getRandomInt(0, 120) },
+      { id: 'D7kdflqFvCs', start: getRandomInt(0, 120) },
+      { id: 'y1Gf4ue4Xzc', start: getRandomInt(0, 120) },
+      { id: 'X6PhsrcO80g', start: getRandomInt(0, 120) },
+      { id: 'EmQPIcyd2pA', start: getRandomInt(0, 120) },
+      { id: '0Svrf3BOsp4', start: getRandomInt(0, 120) },
+      { id: 'q8h0mURm6Vg', start: getRandomInt(0, 120) },
+      { id: 'sjSiLKVE3SA', start: getRandomInt(0, 120) },
+      { id: 'sht6OP94lPM', start: getRandomInt(0, 120) }
+    ];
+
+    // This function creates a YouTube player for the given video ID and start time
+    function createPlayer(playerId, videoId, startTime) {
+      return new YT.Player(playerId, {
+        height: '480',
+        width: '854',
+        videoId: videoId,
+        playerVars: {
+          start: startTime, // Set the start time for each player
+          autoplay: 1, // Enable autoplay
+        },
+        events: {
+          'onStateChange': onPlayerStateChange
+        }
+      });
+    }
+
+    // This function creates a single YouTube player and stores it in the currentPlayer variable
+    function createPlayerAndSetCurrent(video) {
+      var playerContainer = document.getElementById('playerContainer');
+      playerContainer.innerHTML = ''; // Clear previous player instance
+
+      var playerId = 'player';
+      var playerDiv = document.createElement('div');
+      playerDiv.id = playerId;
+      playerContainer.appendChild(playerDiv);
+
+      currentPlayer = createPlayer(playerId, video.id, video.start);
+      previousVideoId = currentVideoId;
+      currentVideoId = video.id;
+    }
+
+    // This function triggers the random video playback
+    function playRandomVideo() {
+      var video = getRandomVideo();
+      createPlayerAndSetCurrent(video);
+      scheduleNextRandomVideo();
+    }
+
+    // This function returns a random video from the videos array
+    function getRandomVideo() {
+      var randomIndex = getRandomInt(0, videos.length - 10);
+      return videos[randomIndex];
+    }
+
+    // This function is called when the player's state changes
+    function onPlayerStateChange(event) {
+      if (event.data === YT.PlayerState.ENDED) {
+        playRandomVideo(); // Play a new random video when the current one ends
+      }
+    }
+
+    // This function schedules the next automatic random video
+    function scheduleNextRandomVideo() {
+      var nextDelay = getRandomInt(10, 140) * 1000; // Random delay between 7 to 60 seconds
+      setTimeout(playRandomVideo, nextDelay);
+    }
+
+    // This function retrieves the URL of the current video
+    function getCurrentVideoUrl() {
+      var currentVideoUrl = 'https://www.youtube.com/watch?v=' + currentVideoId;
+      alert('Current Video URL: ' + currentVideoUrl);
+    }
+    
+    // This function returns to the previously viewed video
+    function returnToPreviousVideo() {
+      var previousVideoUrl = 'https://www.youtube.com/watch?v=' + previousVideoId;
+      alert('Returning to Previous Video: ' + previousVideoUrl);
+      createPlayerAndSetCurrent({ id: previousVideoId, start: 0 }); // Start from the beginning of the previous video
+    }
+
+    // Callback function when YouTube Iframe API is ready
+    function onYouTubeIframeAPIReady() {
+      playRandomVideo(); // Trigger the initial playback
+    }
+
+    // Load the YouTube Iframe API asynchronously
+    var tag = document.createElement('script');
+    tag.src = "https://www.youtube.com/iframe_api";
+    var firstScriptTag = document.getElementsByTagName('script')[0];
+    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+  </script>
+</body>
+</html>
